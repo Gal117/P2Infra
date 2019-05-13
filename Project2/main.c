@@ -114,8 +114,66 @@ int main(int argc, char* argv[]) {
 */
 // DESARROLLAR EN ENSAMBLADOR, *NO* SE PUEDEN USAR NOMBRES SIMBOLICOS
 void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
+	int ancho = img->ancho; //Ancho en pixeles de la imagen
+	int alto = img->alto; //Alto en pixeles de la imagen
+	int numBytesAncho = ancho * 3; //Ancho en bytes de la imagen(pixel = RGB)
+	int numBytesAlto = alto * 3; //Ancho en bytes de la imagen(pixel = RGB)
+	int k = 7; //Posicion del bit en cada byte del mensaje (Es 7 porque se usara modulo para determinar tal posición)
+	int count = 0; //Byte actual del mensaje 
+	int length = 0; //Longitud del mensaje
+	while (mensaje[length] != '\0') //Se recorre el mensaje hasta que se acabe para determinar su longitud.
+	{
+		length++;
+	}
+
+	for (int i = 0; i < numBytesAlto*numBytesAncho; i++) //Byte actual de la imagen.
+	{
+		if (count >= length) //Si el byte actual del mensaje supera o es igual a su longitud, se acaba el ciclo, para evitar excepciones.
+		{
+			break;
+		}
+		img->informacion[i] = (img->informacion[i] >> n) << n; //Se eliminan los bits menos significativos mediante corrimientos.
+		for (int j = 0; j < n; j++, k--) //Aqui se controla de a cuanto se agrupan los bits del mensaje dependiendo de n.
+		{
+			if (k < 0) //Si la posicion del bit en el byte del mensaje es menor a 0, k vuelve a 7 y se cambia de byte en el mensaje, porque ya se inserto todo el byte.
+			{
+				k = 7;
+				count++;
+			}
+			if ((mensaje[count] & (1 << (k % 8))) != 0) //Se determina si el bit actual del mensaje es un 1 con AND. Si lo es, inserta el 1 en el byte de la imagen con un OR. Si no lo es, cambia de bit.
+			{
+				img->informacion[i] = (img->informacion[i] | 1 << (n - j - 1)); //n-j-1 determina que tanto se debe correr el 1 para ser insertado en el byte de la imagen, pues j me dice en que bit del grupo de tamanio n voy.
+			}
+		}
+	}
 	__asm {
 		push ebp
+		mov ebp, esp
+		sub esp, 28
+		mov ebx, [ebp + 8]; ebx apunta a la imagen
+		mov ecx, [ebx]; ecx apunta al ancho de la imagen
+		mov edx, [ebx + 4]; edx apunta al alto de la imagen
+		imul ecx, 3; multiplicar ancho por 3
+		imul edx, 3; multiplicar alto por 3
+		mov[ebp - 12], 7; asigna 7 a una variable llamada k
+		mov[ebp - 16], 0; asigna 0 a una variable llamada count
+		mov edi, [ebp + 12]; edi apunta al parametro mensaje[]
+		mov[ebp - 24], 0; se guarda i, inicializado en cero
+		mov[ebp - 28], 0; se guarda j inicializado en cero
+		while:
+
+		mov[ebp - 20], 0; asigna 0 a una variable llamada length
+		mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
+		mov al, [edi + esi]; recupera el char actual del parametro mensaje[]
+		cmp al, 0; comparo char actual con caracter vacio, si es igual, termina while
+		je finWhile; etiqueta para saltar a fin de while
+		inc esi; incrementa length
+
+		finWhile:
+		
+		forExterno:
+		cmp[ebp-16], esi
+
 
 	}
 }
@@ -129,9 +187,28 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 */
 // DESARROLLAR EN ENSAMBLADOR, SE PUEDEN USAR NOMBRES SIMBOLICOS
 void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
+	int primeraVez = 1;		//variable de referencia para el primer caso (es decir, cuando se empieza a sacar los primeros n bits de todo el arreglo de información
+	int pos = 0;	//Contador de posiciones del arreglo informacion de img
+	int totbits = 0;	//contador de cuántos bits se tienen de una letra
+	int vtb = 0;	//Contador de cuántas letras se han leído y a la par, es el índice donde se guardará la letra completa en msg
+	int faltan = 0;	//Contador de cuántos bits faltan
+	unsigned char temp1;	//Variable donde se guardan los primeros n bits de la letra en las posiciones más significativas del char
+	unsigned char tempAux;	//Variable que guardan los siguientes n bits de la letra
+	unsigned char tempFalta;	//Variable que guarda los ultimos bits necesarios para completar la letra
+	unsigned char tempResiduo;	//Variable que guarda los bits restantes (son menos que n) de cada unsigned char de informacion
+	unsigned char letra;	//Char completo a guardar en msg
+
 	__asm {
+	
+		mov pos, 0
+		mov totbits, 0
+		mov vtb, 0
+		mov faltan, 0
+		mov ebx, l
+		while:
 
 	}
+	
 }
 
 /**
