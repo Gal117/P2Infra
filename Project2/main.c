@@ -160,21 +160,45 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		mov edi, [ebp + 12]; edi apunta al parametro mensaje[]
 		mov[ebp - 24], 0; se guarda i, inicializado en cero
 		mov[ebp - 28], 0; se guarda j inicializado en cero
+		imul ecx, edx; multiplicar ancho por alto
+		mov[edx], 0
+
 		while:
 
 		mov[ebp - 20], 0; asigna 0 a una variable llamada length
-		mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
-		mov al, [edi + esi]; recupera el char actual del parametro mensaje[]
-		cmp al, 0; comparo char actual con caracter vacio, si es igual, termina while
-		je finWhile; etiqueta para saltar a fin de while
-		inc esi; incrementa length
+			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
+			mov al, [edi + esi]; recupera el char actual del parametro mensaje[]
+			cmp al, 0; comparo char actual con caracter vacio, si es igual, termina while
+			je finWhile; etiqueta para saltar a fin de while
+			inc esi; incrementa length
 
-		finWhile:
-		
-		forExterno:
-		cmp[ebp-16], esi
+			finWhile :
 
+	forExterno:
 
+		cmp[ebp - 16], esi
+		jge finForExterno
+		mov edi, [ebp - 24]
+		mov cl, [ebx + edi]
+		shr [cl], [ebp + 16]
+		shl [cl], [ebp + 16]
+
+			forInterno:
+
+			cmp [ebp - 28], [ebp + 16]
+			jg finForInterno
+			cmp [ebp-12], 0
+			jg if2
+			mov [ebp - 12], 7
+			inc [ebp - 16]
+			if2:
+			mov dl, [edi+ebp-16]
+			mov ax, [ebp-12]
+			mov bh, 8
+			idiv bh
+			shl 1,ah
+			finForInterno:
+			finForExterno:
 	}
 }
 
