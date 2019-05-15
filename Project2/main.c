@@ -121,6 +121,8 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 	int k = 7; //Posicion del bit en cada byte del mensaje (Es 7 porque se usara modulo para determinar tal posición)
 	int count = 0; //Byte actual del mensaje 
 	int length = 0; //Longitud del mensaje
+
+
 	while (mensaje[length] != '\0') //Se recorre el mensaje hasta que se acabe para determinar su longitud.
 	{
 		length++;
@@ -147,32 +149,31 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		}
 	}
 	__asm {
-		push ebp
-		mov ebp, esp
-		sub esp, 28
+	
+		sub esp, 32
 		mov ebx, [ebp + 8]; ebx apunta a la imagen
 		mov ecx, [ebx]; ecx apunta al ancho de la imagen
 		mov edx, [ebx + 4]; edx apunta al alto de la imagen
 		imul ecx, 3; multiplicar ancho por 3
 		imul edx, 3; multiplicar alto por 3
+		mov[ebp - 4], ecx; ancho * 3 queda en ebp - 4
+		mov[ebp - 8], edx; alto * 3 queda en ebp - 8
+		imul ecx, edx; multiplica ancho por alto
+		mov[ebp - 4], ecx; guarda ancho*alto en ebp - 4
 		mov[ebp - 12], 7; asigna 7 a una variable llamada k
 		mov[ebp - 16], 0; asigna 0 a una variable llamada count
-		mov edi, [ebp + 12]; edi apunta al parametro mensaje[]
-		mov[ebp - 24], 0; se guarda i, inicializado en cero
-		mov[ebp - 28], 0; se guarda j inicializado en cero
-		imul ecx, edx; multiplicar ancho por alto
-		mov[edx], 0
+		mov[ebp - 20], 0; inicializa length en 0
+		mov[ebp - 24], 0; inicializa i en 0
+		mov[ebp - 28], 0; inicializa j en 0
+		mov edi, [ebp + 12]; edi apunta al inicio del mensaje
+		while:	
 
-		while:
-
-		mov[ebp - 20], 0; asigna 0 a una variable llamada length
 			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
-			mov al, [edi + esi]; recupera el char actual del parametro mensaje[]
+			mov al, [edi+esi]; recupera el char actual del parametro mensaje[]
 			cmp al, 0; comparo char actual con caracter vacio, si es igual, termina while
 			je finWhile; etiqueta para saltar a fin de while
 			inc esi; incrementa length
-
-			finWhile :
+			finWhile:
 
 	forExterno:
 
@@ -180,7 +181,7 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		jge finForExterno
 		mov edi, [ebp - 24]
 		mov cl, [ebx + edi]
-		shr [cl], [ebp + 16]
+		shr cl, [ebp + 16]
 		shl [cl], [ebp + 16]
 
 			forInterno:
@@ -225,14 +226,20 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 	__asm {
 	
 		mov pos, 0
-		mov totbits, 0
-		mov vtb, 0
-		mov faltan, 0
-		mov ebx, l
-		while:
+		mov pos_array, 0
+		mov ebx, [ebp + 8]; ebx apunta a la imagen
+		mov ecx, [ebx]; ecx apunta al ancho de la imagen
+		mov edx, [ebx + 4]; edx apunta al alto de la imagen
 
+		while:
+		cmp
 	}
 	
+
+	for (int pos = 0, pos_arr = 0; pos_arr < img->alto*img->ancho && pos < l * 8; pos_arr++)
+		for (int k = n - 1; k >= 0 && pos < l * 8; k--, pos++)
+			msg[pos / 8] = msg[pos / 8] | (((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)));
+
 }
 
 /**
