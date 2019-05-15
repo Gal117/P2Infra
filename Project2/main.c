@@ -169,7 +169,7 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 
 		while:	
 
-			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
+			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0 
 			mov al, [edi+esi]; recupera el char actual del parametro mensaje[]
 			cmp al, 0; comparo char actual con caracter vacio, si es igual, termina while
 			je finWhile; etiqueta para saltar a fin de while
@@ -184,26 +184,41 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			mov cl, [ebp - 24]; cl apunta a i
 			cmp cl, [ebp - 4]; comparo i con bytesAlto*bytesAncho
 			jge finForExterno
-			mov edx, [ebp + 8]; guarda en edx el apuntador a informacion de la imagen que llega por parametro
+			mov edx, [ebx + 8]; guarda en edx el apuntador a informacion de la imagen que llega por parametro
 			mov eax, [edx + esi]; guarda el char que esta en la posicion i del vector informacion de la imagen
-			shr [eax],cl
-			shl [eax], cl
-			mov [ebp - 32], eax
+			shr[eax], cl; corrimiento a char actual
+			shl[eax], cl; corrimiento para dejar en cero los bits a cambiar
+			mov[ebp - 32], al; guarda el apuntador al char modificado en variable temporal ebp-32
 
 			forInterno:
 
-			cmp [ebp - 28], [ebp + 16]
-			jg finForInterno
-			cmp [ebp-12], 0
-			jg if2
-			mov [ebp - 12], 7
-			inc [ebp - 16]
-			if2:
-			mov dl, [edi+ebp-16]
-			mov ax, [ebp-12]
-			mov bh, 8
-			idiv bh
-			shl 1,ah
+			mov esi, [ebp - 28]; esi apunta a j
+			cmp esi, [ebp + 16]; compara j con n
+			jge finForInterno
+
+			if1:
+
+			cmp[ebp - 12], 0; compara k con 0
+			jg finIf1
+			mov[ebp - 12], 7; Si k es menor, k=7
+			add[ebp - 16], 1; Suma 1 a count
+
+			finIf1:
+
+		if2:
+
+			mov esi, [ebp - 16]; esi apunta a count
+			mov ax, [ebp - 12]; ax apunta a k
+			mov bh, 8; divisor es 8
+			idiv bh; divido k entre 8 para sacar modulo que esta guardado en ah
+			mov cl, ah; muevo el residuo de la division a cl
+			mov eax, 1; muevo 1 a eax
+			shl[eax], cl; muevo a la izquierda a lo que apunta eax, el residuo de la division
+			mov edi, [ebp + 12]; edi apunta de vuelta al inicio de mensaje
+			mov cl, [edi + esi]; cl apunta al char mensaje[count]
+			imul ecx, 256
+			imul ecx, 256
+			imul ecx, 256
 			finForInterno:
 		finForExterno:
 
@@ -237,7 +252,7 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 		mov ebx, [ebp + 8]; ebx apunta a la imagen
 		mov ecx, [ebx]; ecx apunta al ancho de la imagen
 		mov edx, [ebx + 4]; edx apunta al alto de la imagen
-
+		cmp primeraVez, vtb
 		while:
 		cmp
 	}
