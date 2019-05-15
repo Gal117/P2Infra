@@ -166,16 +166,18 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		mov[ebp - 24], 0; inicializa i en 0
 		mov[ebp - 28], 0; inicializa j en 0
 		mov edi, [ebp + 12]; edi apunta al inicio del mensaje
+
 		while:	
 
 			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
 			mov al, [edi+esi]; recupera el char actual del parametro mensaje[]
 			cmp al, 0; comparo char actual con caracter vacio, si es igual, termina while
 			je finWhile; etiqueta para saltar a fin de while
-			inc esi; incrementa length
+			add [ebp - 20],1; incrementa length
+			jmp while 
 			finWhile:
 
-	forExterno:
+		forExterno:
 
 		cmp[ebp - 16], esi
 		jge finForExterno
