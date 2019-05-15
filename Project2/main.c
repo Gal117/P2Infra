@@ -175,16 +175,20 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			je finWhile; etiqueta para saltar a fin de while
 			add [ebp - 20],1; incrementa length
 			jmp while 
-			finWhile:
+
+		finWhile:
+
 
 		forExterno:
 
-		cmp[ebp - 16], esi
-		jge finForExterno
-		mov edi, [ebp - 24]
-		mov cl, [ebx + edi]
-		shr cl, [ebp + 16]
-		shl [cl], [ebp + 16]
+			mov cl, [ebp - 24]; cl apunta a i
+			cmp cl, [ebp - 4]; comparo i con bytesAlto*bytesAncho
+			jge finForExterno
+			mov edx, [ebp + 8]; guarda en edx el apuntador a informacion de la imagen que llega por parametro
+			mov eax, [edx + esi]; guarda el char que esta en la posicion i del vector informacion de la imagen
+			shr [eax],cl
+			shl [eax], cl
+			mov [ebp - 32], eax
 
 			forInterno:
 
@@ -201,7 +205,8 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			idiv bh
 			shl 1,ah
 			finForInterno:
-			finForExterno:
+		finForExterno:
+
 	}
 }
 
