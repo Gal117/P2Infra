@@ -123,31 +123,33 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 	int length = 0; //Longitud del mensaje
 
 
-	while (mensaje[length] != '\0') //Se recorre el mensaje hasta que se acabe para determinar su longitud.
-	{
-		length++;
-	}
+	//while (mensaje[length] != '\0') //Se recorre el mensaje hasta que se acabe para determinar su longitud.
+	//{
+	//	length++;
+	//}
 
-	for (int i = 0; i < numBytesAlto*numBytesAncho; i++) //Byte actual de la imagen.
-	{
-		if (count >= length) //Si el byte actual del mensaje supera o es igual a su longitud, se acaba el ciclo, para evitar excepciones.
-		{
-			break;
-		}
-		img->informacion[i] = (img->informacion[i] >> n) << n; //Se eliminan los bits menos significativos mediante corrimientos.
-		for (int j = 0; j < n; j++, k--) //Aqui se controla de a cuanto se agrupan los bits del mensaje dependiendo de n.
-		{
-			if (k < 0) //Si la posicion del bit en el byte del mensaje es menor a 0, k vuelve a 7 y se cambia de byte en el mensaje, porque ya se inserto todo el byte.
-			{
-				k = 7;
-				count++;
-			}
-			if ((mensaje[count] & (1 << (k % 8))) != 0) //Se determina si el bit actual del mensaje es un 1 con AND. Si lo es, inserta el 1 en el byte de la imagen con un OR. Si no lo es, cambia de bit.
-			{
-				img->informacion[i] = (img->informacion[i] | 1 << (n - j - 1)); //n-j-1 determina que tanto se debe correr el 1 para ser insertado en el byte de la imagen, pues j me dice en que bit del grupo de tamanio n voy.
-			}
-		}
-	}
+	//for (int i = 0; i < numBytesAlto*numBytesAncho; i++) //Byte actual de la imagen.
+	//{
+	//	if (count >= length) //Si el byte actual del mensaje supera o es igual a su longitud, se acaba el ciclo, para evitar excepciones.
+	//	{
+	//		break;
+	//	}
+	//	img->informacion[i] = (img->informacion[i] >> n) << n; //Se eliminan los bits menos significativos mediante corrimientos.
+	//	for (int j = 0; j < n; j++, k--) //Aqui se controla de a cuanto se agrupan los bits del mensaje dependiendo de n.
+	//	{
+	//		if (k < 0) //Si la posicion del bit en el byte del mensaje es menor a 0, k vuelve a 7 y se cambia de byte en el mensaje, porque ya se inserto todo el byte.
+	//		{
+	//			k = 7;
+	//			count++;
+	//		}
+	//		if ((mensaje[count] & (1 << (k % 8))) != 0) //Se determina si el bit actual del mensaje es un 1 con AND. Si lo es, inserta el 1 en el byte de la imagen con un OR. Si no lo es, cambia de bit.
+	//		{
+	//			img->informacion[i] = (img->informacion[i] | 1 << (n - j - 1)); //n-j-1 determina que tanto se debe correr el 1 para ser insertado en el byte de la imagen, pues j me dice en que bit del grupo de tamanio n voy.
+	//		}
+	//	}
+	//}
+	printf("%d",img->alto);
+	printf("%d",img->ancho);
 	__asm {
 	
 		sub esp, 32
@@ -160,11 +162,13 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		mov[ebp - 8], edx; alto * 3 queda en ebp - 8
 		imul ecx, edx; multiplica ancho por alto
 		mov[ebp - 4], ecx; guarda ancho*alto en ebp - 4
-		mov[ebp - 12], 7; asigna 7 a una variable llamada k
-		mov[ebp - 16], 0; asigna 0 a una variable llamada count
-		mov[ebp - 20], 0; inicializa length en 0
-		mov[ebp - 24], 0; inicializa i en 0
-		mov[ebp - 28], 0; inicializa j en 0
+		mov eax , 0
+		mov[ebp - 16], eax; asigna 0 a una variable llamada count
+		mov[ebp - 20], eax; inicializa length en 0
+		mov[ebp - 24], eax; inicializa i en 0
+		mov[ebp - 28], eax; inicializa j en 0
+		mov eax , 7
+		mov[ebp - 12], eax; asigna 7 a una variable llamada k
 		mov edi, [ebp + 12]; edi apunta al inicio del mensaje
 
 		while:	
@@ -181,14 +185,14 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 
 		forExterno:
 
-			mov cl, [ebp - 24]; cl apunta a i
+			mov ecx, [ebp - 24]; cl apunta a i
 			cmp cl, [ebp - 4]; comparo i con bytesAlto*bytesAncho
 			jge finForExterno
 			mov edx, [ebx + 8]; guarda en edx el apuntador a informacion de la imagen que llega por parametro
 			mov eax, [edx + esi]; guarda el char que esta en la posicion i del vector informacion de la imagen
-			shr[eax], cl; corrimiento a char actual
-			shl[eax], cl; corrimiento para dejar en cero los bits a cambiar
-			mov[ebp - 32], al; guarda el apuntador al char modificado en variable temporal ebp-32
+			shr eax, cl; corrimiento a char actual
+			shl eax, cl; corrimiento para dejar en cero los bits a cambiar
+			mov [ebp - 32], al; guarda el apuntador al char modificado en variable temporal ebp-32
 
 			forInterno:
 
@@ -208,8 +212,8 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		if2:
 
 			mov esi, [ebp - 16]; esi apunta a count
-			mov ax, [ebp - 12]; ax apunta a k
-			mov bh, 8; divisor es 8
+			mov eax, [ebp - 12]; ax apunta a k
+			mov bh, 0x8; divisor es 8
 			idiv bh; divido k entre 8 para sacar modulo que esta guardado en ah
 			mov cl, ah; muevo el residuo de la division a cl
 			mov eax, 1; muevo 1 a eax
@@ -246,15 +250,7 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 	unsigned char letra;	//Char completo a guardar en msg
 
 	__asm {
-	
-		mov pos, 0
-		mov pos_array, 0
-		mov ebx, [ebp + 8]; ebx apunta a la imagen
-		mov ecx, [ebx]; ecx apunta al ancho de la imagen
-		mov edx, [ebx + 4]; edx apunta al alto de la imagen
-		cmp primeraVez, vtb
-		while:
-		cmp
+
 	}
 	
 
