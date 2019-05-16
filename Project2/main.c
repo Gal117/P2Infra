@@ -148,10 +148,9 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 	//		}
 	//	}
 	//}
-	printf("%d",img->alto);
-	printf("%d",img->ancho);
-	__asm {
 	
+	__asm {
+
 		sub esp, 32
 		mov ebx, [ebp + 8]; ebx apunta a la imagen
 		mov ecx, [ebx]; ecx apunta al ancho de la imagen
@@ -162,30 +161,31 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		mov[ebp - 8], edx; alto * 3 queda en ebp - 8
 		imul ecx, edx; multiplica ancho por alto
 		mov[ebp - 4], ecx; guarda ancho*alto en ebp - 4
-		mov eax , 0
+		mov eax, 0
 		mov[ebp - 16], eax; asigna 0 a una variable llamada count
 		mov[ebp - 20], eax; inicializa length en 0
 		mov[ebp - 24], eax; inicializa i en 0
 		mov[ebp - 28], eax; inicializa j en 0
-		mov eax , 7
+		mov eax, 7
 		mov[ebp - 12], eax; asigna 7 a una variable llamada k
 		mov edi, [ebp + 12]; edi apunta al inicio del mensaje
-
+		mov eax, 0; limpia eax
+		mov ecx, 0; limpia ecx, que antes tenis numBytesAlto*numBytesAncho
 		while:	
 
-			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0 
+			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
+			mov eax, 0
 			mov al, [edi+esi]; recupera el char actual del parametro mensaje[]
 			cmp al, 0; comparo char actual con caracter vacio, si es igual, termina while
 			je finWhile; etiqueta para saltar a fin de while
 			add [ebp - 20],1; incrementa length
 			jmp while 
-
+			
 		finWhile:
-
-
+		
 		forExterno:
 
-			mov ecx, [ebp - 24]; cl apunta a i
+			mov ecx, [ebp - 24]; ecx apunta a i
 			cmp cl, [ebp - 4]; comparo i con bytesAlto*bytesAncho
 			jge finForExterno
 			mov edx, [ebx + 8]; guarda en edx el apuntador a informacion de la imagen que llega por parametro
