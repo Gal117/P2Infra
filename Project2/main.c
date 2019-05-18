@@ -173,10 +173,6 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		mov eax, 0; limpia eax
 		mov ecx, 0; limpia ecx, que antes tenis numBytesAlto*numBytesAncho
 
-		; prueba
-		
-		;fin
-
 		while:	
 
 			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
@@ -215,8 +211,9 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			mov esi, [ebp - 28]; esi apunta a j
 			cmp esi, [ebp + 16]; compara j con n
 			jge sumarI
+			jmp if1
 
-			sumarI :
+			sumarI:
 			add[ebp - 24], 1
 			jmp forExterno
 
@@ -256,10 +253,10 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			jmp finForInterno
 
 			finForInterno:
-			add[ebp - 24], 1; i++ como avanze de forExterno
+			; add[ebp - 24], 1; i++ como avanze de forExterno
 			add[ebp - 28], 1; j++ como avanze de forInterno 
 			sub[ebp - 12], 1; k-- como avanze de forInterno
-			jmp forExterno
+			jmp forInterno
 	
 		finForExterno:
 		add esp,32
