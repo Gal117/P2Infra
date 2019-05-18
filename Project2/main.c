@@ -171,6 +171,7 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		mov edi, [ebp + 12]; edi apunta al inicio del mensaje
 		mov eax, 0; limpia eax
 		mov ecx, 0; limpia ecx, que antes tenis numBytesAlto*numBytesAncho
+
 		while:	
 
 			mov esi, [ebp - 20]; esi apunta a length, que esta inicializado en 0
@@ -183,19 +184,29 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			
 		finWhile:
 		
+
 		forExterno:
 
 			mov ecx, [ebp - 24]; ecx apunta a i
-			cmp cl, [ebp - 4]; comparo i con bytesAlto*bytesAncho
+			cmp ecx, [ebp - 4]; comparo i con bytesAlto*bytesAncho
 			jge finForExterno
+
+			mov ecx, [ebp - 16]; ecx apunta a count
+			mov edx, [ebp - 20]; edx apunta a length
+			cmp ecx, edx; compara count con length, si es mayor o igual, termina el ciclo
+			jge finForExterno
+			mov eax, 0; limpia eax
 			mov edx, [ebx + 8]; guarda en edx el apuntador a informacion de la imagen que llega por parametro
-			mov eax, [edx + esi]; guarda el char que esta en la posicion i del vector informacion de la imagen
-			shr eax, cl; corrimiento a char actual
-			shl eax, cl; corrimiento para dejar en cero los bits a cambiar
+			mov esi, [ebp - 24]; esi apunta a i
+			mov al, [edx + esi]; guarda el char que esta en la posicion i del vector informacion de la imagen
+			mov cl, [ebp + 16]; cl guarda n para hacer desplazamiento
+			shr al, cl; corrimiento a char actual
+			shl al, cl; corrimiento para dejar en cero los bits a cambiar
 			mov [ebp - 32], al; guarda el apuntador al char modificado en variable temporal ebp-32
 
 			forInterno:
 
+			mov esi, 0; limpiar esi por prevencion
 			mov esi, [ebp - 28]; esi apunta a j
 			cmp esi, [ebp + 16]; compara j con n
 			jge finForInterno
@@ -204,12 +215,14 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 
 			cmp[ebp - 12], 0; compara k con 0
 			jg finIf1
-			mov[ebp - 12], 7; Si k es menor, k=7
+			mov esi, 7; esi apunta a 7, para asignar k a 7 nuevamente
+			mov[ebp - 12], esi; Si k es menor, k = 7
 			add[ebp - 16], 1; Suma 1 a count
-
+			mov esi, 0; limpia esi
+		
 			finIf1:
 
-		if2:
+			if2:
 
 			mov esi, [ebp - 16]; esi apunta a count
 			mov eax, [ebp - 12]; ax apunta a k
@@ -217,12 +230,10 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			idiv bh; divido k entre 8 para sacar modulo que esta guardado en ah
 			mov cl, ah; muevo el residuo de la division a cl
 			mov eax, 1; muevo 1 a eax
-			shl[eax], cl; muevo a la izquierda a lo que apunta eax, el residuo de la division
+			shl eax, cl; muevo a la izquierda a lo que apunta eax, el residuo de la division
 			mov edi, [ebp + 12]; edi apunta de vuelta al inicio de mensaje
 			mov cl, [edi + esi]; cl apunta al char mensaje[count]
-			imul ecx, 256
-			imul ecx, 256
-			imul ecx, 256
+			
 			finForInterno:
 		finForExterno:
 
