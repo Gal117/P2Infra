@@ -114,13 +114,13 @@ int main(int argc, char* argv[]) {
 */
 // DESARROLLAR EN ENSAMBLADOR, *NO* SE PUEDEN USAR NOMBRES SIMBOLICOS
 void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
-	int ancho = img->ancho; //Ancho en pixeles de la imagen
-	int alto = img->alto; //Alto en pixeles de la imagen
-	int numBytesAncho = ancho * 3; //Ancho en bytes de la imagen(pixel = RGB)
-	int numBytesAlto = alto * 3; //Ancho en bytes de la imagen(pixel = RGB)
-	int k = 7; //Posicion del bit en cada byte del mensaje (Es 7 porque se usara modulo para determinar tal posición)
-	int count = 0; //Byte actual del mensaje 
-	int length = 0; //Longitud del mensaje
+	//int ancho = img->ancho; //Ancho en pixeles de la imagen
+	//int alto = img->alto; //Alto en pixeles de la imagen
+	//int numBytesAncho = ancho * 3; //Ancho en bytes de la imagen(pixel = RGB)
+	//int numBytesAlto = alto * 3; //Ancho en bytes de la imagen(pixel = RGB)
+	//int k = 7; //Posicion del bit en cada byte del mensaje (Es 7 porque se usara modulo para determinar tal posición)
+	//int count = 0; //Byte actual del mensaje 
+	//int length = 0; //Longitud del mensaje
 
 
 	//while (mensaje[length] != '\0') //Se recorre el mensaje hasta que se acabe para determinar su longitud.
@@ -166,11 +166,16 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		mov[ebp - 20], eax; inicializa length en 0
 		mov[ebp - 24], eax; inicializa i en 0
 		mov[ebp - 28], eax; inicializa j en 0
+		mov[ebp - 32], eax; inicializa ebp - 32 en 0
 		mov eax, 7
 		mov[ebp - 12], eax; asigna 7 a una variable llamada k
 		mov edi, [ebp + 12]; edi apunta al inicio del mensaje
 		mov eax, 0; limpia eax
 		mov ecx, 0; limpia ecx, que antes tenis numBytesAlto*numBytesAncho
+
+		; prueba
+		
+		;fin
 
 		while:	
 
@@ -184,7 +189,7 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			
 		finWhile:
 		
-
+		
 		forExterno:
 
 			mov ecx, [ebp - 24]; ecx apunta a i
@@ -192,9 +197,9 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			jge finForExterno
 
 			mov ecx, [ebp - 16]; ecx apunta a count
-			mov edx, [ebp - 20]; edx apunta a length
-			cmp ecx, edx; compara count con length, si es mayor o igual, termina el ciclo
+			cmp ecx, [ebp-20]; compara count con length, si es mayor o igual, termina el ciclo
 			jge finForExterno
+
 			mov eax, 0; limpia eax
 			mov edx, [ebx + 8]; guarda en edx el apuntador a informacion de la imagen que llega por parametro
 			mov esi, [ebp - 24]; esi apunta a i
@@ -202,14 +207,18 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			mov cl, [ebp + 16]; cl guarda n para hacer desplazamiento
 			shr al, cl; corrimiento a char actual
 			shl al, cl; corrimiento para dejar en cero los bits a cambiar
-			mov [ebp - 32], al; guarda el apuntador al char modificado en variable temporal ebp-32
+			mov [ebp - 32], al; guarda el apuntador a img->informacion[i] modificado en variable temporal ebp-32
 
 			forInterno:
 
 			mov esi, 0; limpiar esi por prevencion
 			mov esi, [ebp - 28]; esi apunta a j
 			cmp esi, [ebp + 16]; compara j con n
-			jge finForInterno
+			jge sumarI
+
+			sumarI :
+			add[ebp - 24], 1
+			jmp forExterno
 
 			if1:
 
@@ -222,21 +231,39 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		
 			finIf1:
 
-			if2:
 
 			mov esi, [ebp - 16]; esi apunta a count
-			mov eax, [ebp - 12]; ax apunta a k
+			mov ax, [ebp - 12]; ax apunta a k
+			push ebx; salvaguarda ebx, que apunta originalmente a la imagen parametro
 			mov bh, 0x8; divisor es 8
-			idiv bh; divido k entre 8 para sacar modulo que esta guardado en ah
+			idiv bh; divido k entre 8 para sacar modulo que esta guardado en ah, en al esta el cociente que puede ser sobreescrito
+			pop ebx; recupero ebx, que apuntaba a la imagen
+			mov ecx, 0; limpia ecx por prevencion
 			mov cl, ah; muevo el residuo de la division a cl
-			mov eax, 1; muevo 1 a eax
-			shl eax, cl; muevo a la izquierda a lo que apunta eax, el residuo de la division
-			mov edi, [ebp + 12]; edi apunta de vuelta al inicio de mensaje
+			mov al, 1; muevo 1 a al
+			shl al, cl; muevo a la izquierda a lo que apunta al, el residuo de la division
 			mov cl, [edi + esi]; cl apunta al char mensaje[count]
-			
-			finForInterno:
-		finForExterno:
+			and cl, al; hace and entre el char[mensaje] y el 1 << k % 8
+			jz finForInterno
 
+			mov cl, [ebp + 16]; ecx apunta a n
+			mov al, [ebp - 28]; ax apunta a j
+			sub cl, al; n - j
+			sub cl, 1; n - j - 1
+			mov ah, 1; ah contiene a 1
+			shl ah, cl; desplazo los bits de 1 a la izquierda, lo que indique cl, que es n-j-1
+			or [ebp - 32], ah; or entre img->informacion[i]
+			jmp finForInterno
+
+			finForInterno:
+			add[ebp - 24], 1; i++ como avanze de forExterno
+			add[ebp - 28], 1; j++ como avanze de forInterno 
+			sub[ebp - 12], 1; k-- como avanze de forInterno
+			jmp forExterno
+	
+		finForExterno:
+		add esp,32
+		
 	}
 }
 
