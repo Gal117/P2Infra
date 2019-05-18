@@ -189,7 +189,8 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 		forExterno:
 
 			mov ecx, [ebp - 24]; ecx apunta a i
-			cmp ecx, [ebp - 4]; comparo i con bytesAlto*bytesAncho
+			cmp ecx, [ebp-4]; comparo i con el tamanio de la imagen
+
 			jge finForExterno
 
 			mov ecx, [ebp - 16]; ecx apunta a count
@@ -199,12 +200,15 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			mov eax, 0; limpia eax
 			mov edx, [ebx + 8]; guarda en edx el apuntador a informacion de la imagen que llega por parametro
 			mov esi, [ebp - 24]; esi apunta a i
-			mov al, [edx + esi]; guarda el char que esta en la posicion i del vector informacion de la imagen
+			mov al, [edx + esi]; guarda el char que esta en la posicion i del vector informacion de la imagen img->informacion[i]
 			mov cl, [ebp + 16]; cl guarda n para hacer desplazamiento
-			shr al, cl; corrimiento a char actual
+			shr al, cl; corrimiento a char img->informacion[i]
 			shl al, cl; corrimiento para dejar en cero los bits a cambiar
+			mov [edx+esi], al; guarda img->informacion[i] de vuelta en la imagen, pero con el corrimiento aplicado
 			mov [ebp - 32], al; guarda el apuntador a img->informacion[i] modificado en variable temporal ebp-32
-
+			mov eax, 0; asigna 0 a eax
+			mov [ebp -28],eax; j = 0 para empezar for interno
+			
 			forInterno:
 
 			mov esi, 0; limpiar esi por prevencion
@@ -241,6 +245,7 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			shl al, cl; muevo a la izquierda a lo que apunta al, el residuo de la division
 			mov cl, [edi + esi]; cl apunta al char mensaje[count]
 			and cl, al; hace and entre el char[mensaje] y el 1 << k % 8
+			cmp cl, 0; compara el resultado del and con 0
 			jz finForInterno
 
 			mov cl, [ebp + 16]; ecx apunta a n
@@ -249,7 +254,14 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			sub cl, 1; n - j - 1
 			mov ah, 1; ah contiene a 1
 			shl ah, cl; desplazo los bits de 1 a la izquierda, lo que indique cl, que es n-j-1
-			or [ebp - 32], ah; or entre img->informacion[i]
+			or [ebp - 32], ah; or entre img->informacion[i] y 1 << (n - j - 1)
+			mov eax, 0; limpia eax
+			mov ah,[ebp-32]; ah apunta a la variable local destinada a guardar img->informacion[i]
+			mov ecx, [ebp-24]; ecx apunta a i
+			mov edx, 0; limpia edx
+			mov edx, [ebx + 8]; edx apunta a img->informacion
+			mov [edx+ecx],ah; img->informacion[i] queda modificado después de haber sido aplicado el or
+			mov eax, [edx+ecx]
 			jmp finForInterno
 
 			finForInterno:
