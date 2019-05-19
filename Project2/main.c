@@ -224,7 +224,6 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			if1:
 
 			cmp[ebp - 12], 0; compara k con 0
-				; jg finIf1
 			jge finIf1
 			mov esi, 7; esi apunta a 7, para asignar k a 7 nuevamente
 			mov[ebp - 12], esi; Si k es menor, k = 7
@@ -266,7 +265,6 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			jmp finForInterno
 
 			finForInterno:
-			; add[ebp - 24], 1; i++ como avanze de forExterno
 			add[ebp - 28], 1; j++ como avanze de forInterno 
 			sub[ebp - 12], 1; k-- como avanze de forInterno
 			jmp forInterno
@@ -286,25 +284,73 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 */
 // DESARROLLAR EN ENSAMBLADOR, SE PUEDEN USAR NOMBRES SIMBOLICOS
 void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
-	int primeraVez = 1;		//variable de referencia para el primer caso (es decir, cuando se empieza a sacar los primeros n bits de todo el arreglo de información
-	int pos = 0;	//Contador de posiciones del arreglo informacion de img
-	int totbits = 0;	//contador de cuántos bits se tienen de una letra
-	int vtb = 0;	//Contador de cuántas letras se han leído y a la par, es el índice donde se guardará la letra completa en msg
-	int faltan = 0;	//Contador de cuántos bits faltan
-	unsigned char temp1;	//Variable donde se guardan los primeros n bits de la letra en las posiciones más significativas del char
-	unsigned char tempAux;	//Variable que guardan los siguientes n bits de la letra
-	unsigned char tempFalta;	//Variable que guarda los ultimos bits necesarios para completar la letra
-	unsigned char tempResiduo;	//Variable que guarda los bits restantes (son menos que n) de cada unsigned char de informacion
-	unsigned char letra;	//Char completo a guardar en msg
-
+	int pos = 0;
+	int pos_arr = 0;
+	int anchoAlto = img->alto * img->ancho;
+	int posMensaje = 0;
+	int k = 0;
+	int o = 8;
+	unsigned char *apuntador = img->informacion;
 	__asm {
+		forExterno:
+		mov eax, pos_arr; eax apunta a pos_arr
+		cmp eax, anchoAlto; comparo pos_arr con anchoAlto
+		jge finForExterno;
+		mov eax, pos; eax apunta a pos
+		mov ecx, l; ecx apunta a l
+		imul ecx, 8; multiplica l * 8
+		cmp eax, ecx; compara pos con l * 8
+		jge finForExterno
+		mov eax, 0; eax se limpia
+		mov eax, n; eax apunta a n
+		sub eax, 1; resto n - 1
+		mov k, eax; k toma el valor n-1 antes de empezar el forInterno
+
+			forInterno:
+
+			mov eax, k; eax apunta a k, que es n-1
+			cmp eax, 0; comparo k con 0
+			jl finForInterno
+
+			mov eax, pos; eax apunta a pos
+			cmp eax, ecx; comparo pos con l*8, que esta en ecx
+			jge finForInterno
+
+			mov ebx, o; ebx apunta a 8
+			cdq; Hago que el registro quede en ceros menos el 8 para posibilitar la division, ya que de o contrario aparece un Integer Overflow
+			idiv ebx;
+			mov esi, msg[ebx]; esi apunta al char ubicado en msg[ebx] donde ebx es igual a pos / 8
+			mov edi, pos_arr; edi apunta a pos_arr
+			mov edx, 0; limpia edx
+			mov edx, apuntador[edi]; edx apunta al char que esta en img->informacion[pos_arr]
+			mov ecx, 0; ecx limpia
+			mov ecx, k; ecx  ecx apunta a k
+			shr dl, cl; corro el char en dl a la derecha cl veces
+			and dl, 1; and entre el char desplazado y 1
+
+			;mov eax, 0; eax limpia
+			; mov eax, pos; eax apunta a pos
+			; mov ebx, 8; ebx apunta a 8
+			; idiv ebx; dividido pos entre 8, es decir eax / ebx, en ebx queda el cociente
+			; mov esi, msg[ebx]; esi apunta al char del mensaje en posicion pos / 8 para saber en que byte esta
+			; mov eax, pos_arr;
+			; mov ebx, img->informacion;
+			; mov ecx, k;
+			; shr edi, cl;
+			finForInterno:
+		finForExterno:
 
 	}
-	
 
-	for (int pos = 0, pos_arr = 0; pos_arr < img->alto*img->ancho && pos < l * 8; pos_arr++)
+
+	/*for (int pos = 0, pos_arr = 0; pos_arr < img->alto*img->ancho && pos < l * 8; pos_arr++)
 		for (int k = n - 1; k >= 0 && pos < l * 8; k--, pos++)
 			msg[pos / 8] = msg[pos / 8] | (((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)));
+*/
+	
+	
+
+
 
 }
 
