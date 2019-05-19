@@ -290,12 +290,16 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 	int pos_arr = 0;
 	int anchoAlto = img->alto * img->ancho;
 	int posMensaje = 0;
-	int k = 0;
+	int modulo = 0;
+	int division = 0;
+	char k = 0;
+	char nAux = n;
 	int o = 8; 
 	int pos = 0;
 	unsigned char *apuntador = img->informacion;
 	unsigned char *mensaje = msg;
 	int comp = l * 8;
+
 	__asm {
 
 		forExterno:
@@ -308,15 +312,15 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 		cmp eax, comp; compara eax con comp
 		jge finForExterno
 
-		mov eax, n; eax apunta a n
-		sub eax, 1; hago n - 1
-		mov k, eax; k es igual a n - 1
+		mov al, nAux; eax apunta a n
+		sub al, 1; hago n - 1
+		mov k, al; k es igual a n - 1
 
 		
 			forInterno:
 
-			mov eax, k; eax apunta a k
-			cmp eax, 0; compara a k con 0
+			mov al, k; eax apunta a k
+			cmp al, 0; compara a k con 0
 			jl sumarForExterno
 
 			mov eax, pos; eax apunta a pos
@@ -330,14 +334,11 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 
 			proceso:
 
-			mov eax, k; eax apunta a k
-			mov[ebp - 4], eax; asigna k en ebp - 4
-			mov eax, 0; limpia eax
 			mov ebx, pos_arr; ebx apunta a pos_arr
 			mov ecx, [apuntador + ebx]; guarda en ecx la direccion del char en img->informacion[pos_arr]
 			mov al, [ecx];  guarda en al el char img->informacion[pos_arr]
 			
-			mov cl, [ebp - 4]; cl guarda k, ue es para desplazar el char en al k veces
+			mov cl, k; cl guarda k, ue es para desplazar el char en al k veces
 			shr al, cl; desplaza char al, cl veces`(img->informacion[pos_arr] >> k)
 			and al, 1; ((img->informacion[pos_arr] >> k) & 1)
 
