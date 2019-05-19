@@ -296,8 +296,16 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 	unsigned char *apuntador = img->informacion;
 	unsigned char *mensaje = msg;
 	int comp = l * 8;
+	char ktemp = 8;
 	__asm {
 
+		; prueba
+
+		mov cl, ktemp
+		sub ktemp,1
+		mov dl, ktemp
+
+		;fin
 
 		sub esp,16
 		
