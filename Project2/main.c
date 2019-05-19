@@ -224,7 +224,8 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			if1:
 
 			cmp[ebp - 12], 0; compara k con 0
-			jg finIf1
+				; jg finIf1
+			jge finIf1
 			mov esi, 7; esi apunta a 7, para asignar k a 7 nuevamente
 			mov[ebp - 12], esi; Si k es menor, k = 7
 			add[ebp - 16], 1; Suma 1 a count
@@ -249,7 +250,7 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 			jz finForInterno
 
 			mov cl, [ebp + 16]; ecx apunta a n
-			mov al, [ebp - 28]; ax apunta a j
+			mov al, [ebp - 28]; al apunta a j
 			sub cl, al; n - j
 			sub cl, 1; n - j - 1
 			mov ah, 1; ah contiene a 1
