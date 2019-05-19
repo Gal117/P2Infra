@@ -299,7 +299,7 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 	unsigned char *apuntador = img->informacion;
 	unsigned char *mensaje = msg;
 	int comp = l * 8;
-
+	char aux = 0;
 	__asm {
 
 		forExterno:
@@ -312,7 +312,7 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 		cmp eax, comp; compara eax con comp
 		jge finForExterno
 
-		mov al, nAux; eax apunta a n
+		mov al, nAux; al apunta a n
 		sub al, 1; hago n - 1
 		mov k, al; k es igual a n - 1
 
@@ -347,20 +347,20 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 			mov ebx, o; ebx apunta a o
 			cdq; permite division
 			idiv ebx; eax / ebx es decir pos / 8 eax guarda cociente y edx guarda residuo
-			mov[ebp - 16], eax; en ebp - 16 queda pos / 8
+			mov division, eax; en division queda pos / 8
 			mov ecx, 7; esi guarda 7
 			sub ecx, edx; 7 - pos % 8
-			mov[ebp - 8], ecx; en ebp - 8 queda(7 - pos % 8)
-			mov cl, [ebp - 8]; cl guarda  7 - pos % 8
+			mov modulo, ecx; en modulo queda(7 - pos % 8)
+			mov cl, modulo; cl guarda  7 - pos % 8
 			pop al; recupera al
 
 			shl al, cl; (((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)))
-			mov[ebp - 12], al; en ebp - 12 queda(((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)))
-			mov eax, [ebp - 16]; eax apunta a pos / 8
+			mov aux, al; en aux queda(((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)))
+			mov eax, division; eax apunta a pos / 8
 			mov ecx, [mensaje + eax]; ecx guarda direccion de char en msg[pos / 8]
 			mov edx, 0
 			mov dl, [ecx]; dl guarda el char msg[pos / 8]
-			or dl, [ebp - 12]; dl guarda msg[pos / 8] | (((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)))
+			or dl, aux; dl guarda msg[pos / 8] | (((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)))
 			mov [ecx], dl; en msg[pos/8] queda el char modificado
 			jmp finForInterno
 
