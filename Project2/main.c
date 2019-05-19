@@ -298,9 +298,6 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 	int comp = l * 8;
 	__asm {
 
-
-		sub esp,16
-		
 		forExterno:
 
 		mov eax, pos_arr; eax apuna a pos_arr
@@ -373,7 +370,6 @@ void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
 				jmp forInterno
 
 		finForExterno:
-		add esp , 16
 	}
 
 	/*for (int pos = 0, pos_arr = 0; pos_arr < img->alto*img->ancho && pos < l * 8; pos_arr++)
