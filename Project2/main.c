@@ -113,7 +113,9 @@ int main(int argc, char* argv[]) {
 * parámetro n: Cantidad de bits del mensaje que se almacenarán en cada componente de color de cada pixel. 0 < n <= 8.
 */
 // DESARROLLAR EN ENSAMBLADOR, *NO* SE PUEDEN USAR NOMBRES SIMBOLICOS
+
 void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
+
 	//int ancho = img->ancho; //Ancho en pixeles de la imagen
 	//int alto = img->alto; //Alto en pixeles de la imagen
 	//int numBytesAncho = ancho * 3; //Ancho en bytes de la imagen(pixel = RGB)
@@ -284,62 +286,92 @@ void insertarMensaje(Imagen * img, unsigned char mensaje[], int n) {
 */
 // DESARROLLAR EN ENSAMBLADOR, SE PUEDEN USAR NOMBRES SIMBOLICOS
 void leerMensaje(Imagen * img, unsigned char msg[], int l, int n) {
-	int pos = 0;
+	
 	int pos_arr = 0;
 	int anchoAlto = img->alto * img->ancho;
 	int posMensaje = 0;
 	int k = 0;
-	int o = 8;
+	int o = 8; 
+	int pos = 0;
 	unsigned char *apuntador = img->informacion;
+	unsigned char *mensaje = msg;
+	int comp = l * 8;
+
 	__asm {
+		
+		sub esp,16
+		
 		forExterno:
-		mov eax, pos_arr; eax apunta a pos_arr
-		cmp eax, anchoAlto; comparo pos_arr con anchoAlto
-		jge finForExterno;
-		mov eax, pos; eax apunta a pos
-		mov ecx, l; ecx apunta a l
-		imul ecx, 8; multiplica l * 8
-		cmp eax, ecx; compara pos con l * 8
+
+		mov eax, pos_arr; eax apuna a pos_arr
+		cmp eax, anchoAlto; compara pos_arr con anchoAlto
 		jge finForExterno
-		mov eax, 0; eax se limpia
+
+		mov eax, pos; eax apunta a pos
+		cmp eax, comp; compara eax con comp
+		jge finForExterno
+
 		mov eax, n; eax apunta a n
-		sub eax, 1; resto n - 1
-		mov k, eax; k toma el valor n-1 antes de empezar el forInterno
+		sub eax, 1; hago n-1
+		mov k, eax; k es igual a n-1
 
 			forInterno:
 
-			mov eax, k; eax apunta a k, que es n-1
-			cmp eax, 0; comparo k con 0
-			jl finForInterno
+			mov eax, k; eax apunta a k
+			cmp eax, 0; compara a k con 0
+			jl sumarForExterno
 
 			mov eax, pos; eax apunta a pos
-			cmp eax, ecx; comparo pos con l*8, que esta en ecx
-			jge finForInterno
+			cmp eax, comp; compara pos con comp
+			jge sumarForExterno
+			jmp proceso
 
-			mov ebx, o; ebx apunta a 8
-			cdq; Hago que el registro quede en ceros menos el 8 para posibilitar la division, ya que de o contrario aparece un Integer Overflow
-			idiv ebx;
-			mov esi, msg[ebx]; esi apunta al char ubicado en msg[ebx] donde ebx es igual a pos / 8
-			mov edi, pos_arr; edi apunta a pos_arr
-			mov edx, 0; limpia edx
-			mov edx, apuntador[edi]; edx apunta al char que esta en img->informacion[pos_arr]
-			mov ecx, 0; ecx limpia
-			mov ecx, k; ecx  ecx apunta a k
-			shr dl, cl; corro el char en dl a la derecha cl veces
-			and dl, 1; and entre el char desplazado y 1
+			sumarForExterno:
+				add pos_arr,1
+				jmp forExterno
 
-			;mov eax, 0; eax limpia
-			; mov eax, pos; eax apunta a pos
-			; mov ebx, 8; ebx apunta a 8
-			; idiv ebx; dividido pos entre 8, es decir eax / ebx, en ebx queda el cociente
-			; mov esi, msg[ebx]; esi apunta al char del mensaje en posicion pos / 8 para saber en que byte esta
-			; mov eax, pos_arr;
-			; mov ebx, img->informacion;
-			; mov ecx, k;
-			; shr edi, cl;
+			proceso:
+
+			mov eax, k; eax apunta a k
+			mov[ebp - 4], eax; asigna k en ebp - 4
+			mov eax, 0; limpia eax
+			mov ebx, pos_arr; ebx apunta a pos_arr
+			mov ecx, [apuntador + ebx]; guarda en ecx la direccion del char en img->informacion[pos_arr]
+			mov al, [ecx];  guarda en al el char img->informacion[pos_arr]
+			mov cl, [ebp - 4]; cl guarda k, ue es para desplazar el char en al k veces
+			shr al, cl; desplaza char al, cl veces`(img->informacion[pos_arr] >> k)
+			and al, 1; ((img->informacion[pos_arr] >> k) & 1)
+
+			push al; guarda eax
+			mov eax, pos; eax apunta a pos
+			mov ebx, o; ebx apunta a o
+			cdq; permite division
+			idiv ebx; eax / ebx es decir pos / 8 eax guarda cociente y edx guarda residuo
+			mov[ebp - 16], eax; en ebp - 16 queda pos / 8
+			mov ecx, 7; esi guarda 7
+			sub ecx, edx; 7 - pos % 8
+			mov[ebp - 8], ecx; en ebp - 8 queda(7 - pos % 8)
+			mov cl, [ebp - 8]; cl guarda  7 - pos % 8
+			pop al; recupera al
+
+			shl al, cl; (((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)))
+			mov[ebp - 12], al; en ebp - 12 queda(((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)))
+			mov eax, [ebp - 16]; eax apunta a pos / 8
+			mov ecx, [mensaje + eax]; ecx guarda direccion de char en msg[pos / 8]
+			mov edx, 0
+			mov dl, [ecx]; dl guarda el char msg[pos / 8]
+			or dl, [ebp - 12]; dl guarda msg[pos / 8] | (((img->informacion[pos_arr] >> k) & 1) << (7 - (pos % 8)))
+			mov [mensaje + eax], edx; en msg[pos/8] queda el char modificado
+			jmp finForInterno
+
 			finForInterno:
-		finForExterno:
 
+				sub k, 1
+				add pos, 1
+				jmp forInterno
+
+		finForExterno:
+		add esp , 16
 	}
 
 
